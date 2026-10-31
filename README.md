@@ -21,3 +21,12 @@ Second locked page: `private/playbook.html` → `studio/playbook/index.html` (th
 Workflow: edit `private/studio.html`, run `python3 tools/lock.py`, commit `studio/index.html`, push. Changing the password is the same command with a new password. "Stay unlocked on this device" stores the derived key in that browser's localStorage, not the password; re-locking with a new password invalidates it.
 
 Keep a copy of `private/` somewhere backed up. It is the only plaintext.
+
+## /gallery (guest password, synced from Notion)
+
+Trusted viewers see paintings from the Notion "Artwork" database at `/gallery/`, behind a separate guest password (`private/GALLERY-PASSWORD.txt`, salt `private/gallery-salt.b64`). Thumbnails are encrypted inside the page; full-size images are encrypted one per file in `gallery/img/` and decrypted in the browser on tap.
+
+- `tools/pull-artwork.py`: pulls pages and images from Notion into `private/artwork/` (needs a Notion integration token: `$NOTION_TOKEN`, `private/notion-token.txt`, or `~/thirdway-local/credentials/notion-token.txt`). Incremental.
+- `private/gallery-config.json`: what viewers see. Excluded pages (drawings), renames (no sitter names), medium overrides. Missing dimensions are inferred from the image and marked approx.
+- `tools/build-gallery.py`: config + manifest → `private/gallery.html` → locked `gallery/index.html` plus `gallery/img/*.bin`.
+- `tools/sync-gallery.sh`: pull, build, commit, push. Run it whenever Notion changes.

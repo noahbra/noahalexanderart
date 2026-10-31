@@ -93,6 +93,9 @@ def main() -> None:
     ap.add_argument("--source", type=Path, default=SOURCE)
     ap.add_argument("--output", type=Path, default=OUTPUT)
     ap.add_argument("--new-salt", action="store_true", help="rotate the shared salt (expires remembered keys on every device)")
+    ap.add_argument("--salt-file", type=Path, default=SALT_FILE, help="salt file; pages sharing a salt share remembered keys")
+    ap.add_argument("--allow-short", action="store_true", help="accept a password under 8 characters (weak; owner's call)")
+    ap.add_argument("--title", default=None, help="title shown on the unlock card (default: Studio)")
     args = ap.parse_args()
     args.source = args.source.resolve()
     args.output = args.output.resolve()
@@ -108,8 +111,8 @@ def main() -> None:
         again = getpass.getpass("Again: ")
         if password != again:
             sys.exit("passwords do not match")
-    if len(password) < 8:
-        sys.exit("use at least 8 characters; the only thing protecting the page is this password")
+    if len(password) < 8 and not args.allow_short:
+        sys.exit("use at least 8 characters, or pass --allow-short; the only thing protecting the page is this password")
 
     html = args.source.read_text(encoding="utf-8")
     html, inlined = inline_assets(html, args.source.parent)
@@ -118,13 +121,14 @@ def main() -> None:
     else:
         html += BLOB_SHIM
 
-    if SALT_FILE.is_file() and not args.new_salt:
-        salt = base64.b64decode(SALT_FILE.read_text().strip())
+    salt_file = args.salt_file.resolve()
+    if salt_file.is_file() and not args.new_salt:
+        salt = base64.b64decode(salt_file.read_text().strip())
     else:
         salt = secrets.token_bytes(16)
-        SALT_FILE.parent.mkdir(parents=True, exist_ok=True)
-        SALT_FILE.write_text(base64.b64encode(salt).decode() + "\n")
-        print(f"{'rotated' if args.new_salt else 'created'} shared salt at {SALT_FILE.relative_to(ROOT)}")
+        salt_file.parent.mkdir(parents=True, exist_ok=True)
+        salt_file.write_text(base64.b64encode(salt).decode() + "\n")
+        print(f"{'rotated' if args.new_salt else 'created'} salt at {salt_file.relative_to(ROOT)}")
     iv = secrets.token_bytes(12)
     kdf = PBKDF2HMAC(algorithm=hashes.SHA256(), length=32, salt=salt, iterations=ITERATIONS)
     key = kdf.derive(password.encode("utf-8"))
@@ -140,6 +144,8 @@ def main() -> None:
     if "__PAYLOAD__" not in shell:
         sys.exit("unlock-shell.html is missing the __PAYLOAD__ marker")
     out = shell.replace("__PAYLOAD__", payload, 1)
+    if args.title:
+        out = out.replace("<title>Studio</title>", f"<title>{args.title}</title>", 1).replace("<h1>Studio</h1>", f"<h1>{args.title}</h1>", 1)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(out, encoding="utf-8")
 
