@@ -100,8 +100,8 @@ def main() -> None:
         again = getpass.getpass("Again: ")
         if password != again:
             sys.exit("passwords do not match")
-    if len(password) < 12:
-        sys.exit("use at least 12 characters; the only thing protecting the page is this password")
+    if len(password) < 8:
+        sys.exit("use at least 8 characters; the only thing protecting the page is this password")
 
     html = args.source.read_text(encoding="utf-8")
     html, inlined = inline_assets(html, args.source.parent)
