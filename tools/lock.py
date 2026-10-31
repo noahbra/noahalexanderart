@@ -94,6 +94,8 @@ def main() -> None:
     ap.add_argument("--output", type=Path, default=OUTPUT)
     ap.add_argument("--new-salt", action="store_true", help="rotate the shared salt (expires remembered keys on every device)")
     args = ap.parse_args()
+    args.source = args.source.resolve()
+    args.output = args.output.resolve()
 
     if not args.source.is_file():
         sys.exit(f"source not found: {args.source}")
