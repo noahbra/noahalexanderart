@@ -11,6 +11,10 @@ Usage:
   python3 tools/lock.py --password 'phrase'   # non-interactive
   STUDIO_PASSWORD='phrase' python3 tools/lock.py
 
+The PBKDF2 salt is persisted in private/salt.b64 and shared by every locked
+page, so a key remembered on one page ("stay unlocked") opens the others.
+Pass --new-salt to rotate it (remembered keys everywhere then expire).
+
 Local files referenced from the private page (img src, a href, source src,
 video/audio src, link href to .pdf etc.) are inlined as data URIs before
 encryption, so everything behind the password is encrypted with it.
@@ -36,6 +40,7 @@ ROOT = Path(__file__).resolve().parent.parent
 SOURCE = ROOT / "private" / "studio.html"
 SHELL = ROOT / "tools" / "unlock-shell.html"
 OUTPUT = ROOT / "studio" / "index.html"
+SALT_FILE = ROOT / "private" / "salt.b64"
 ITERATIONS = 600_000
 WARN_BYTES = 25 * 1024 * 1024
 
@@ -87,6 +92,7 @@ def main() -> None:
     ap.add_argument("--password", help="password (or set STUDIO_PASSWORD; otherwise prompted)")
     ap.add_argument("--source", type=Path, default=SOURCE)
     ap.add_argument("--output", type=Path, default=OUTPUT)
+    ap.add_argument("--new-salt", action="store_true", help="rotate the shared salt (expires remembered keys on every device)")
     args = ap.parse_args()
 
     if not args.source.is_file():
@@ -110,7 +116,13 @@ def main() -> None:
     else:
         html += BLOB_SHIM
 
-    salt = secrets.token_bytes(16)
+    if SALT_FILE.is_file() and not args.new_salt:
+        salt = base64.b64decode(SALT_FILE.read_text().strip())
+    else:
+        salt = secrets.token_bytes(16)
+        SALT_FILE.parent.mkdir(parents=True, exist_ok=True)
+        SALT_FILE.write_text(base64.b64encode(salt).decode() + "\n")
+        print(f"{'rotated' if args.new_salt else 'created'} shared salt at {SALT_FILE.relative_to(ROOT)}")
     iv = secrets.token_bytes(12)
     kdf = PBKDF2HMAC(algorithm=hashes.SHA256(), length=32, salt=salt, iterations=ITERATIONS)
     key = kdf.derive(password.encode("utf-8"))

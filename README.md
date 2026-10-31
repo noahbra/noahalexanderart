@@ -16,6 +16,8 @@ Deploy: push to `main`. GitHub Pages serves the repo root.
 - `tools/lock.py`: encrypts `private/studio.html` into `studio/index.html`. Prompts for the password, or takes `--password` / `STUDIO_PASSWORD`.
 - `tools/unlock-shell.html`: the unlock page template. Edit for styling only; keep the `__PAYLOAD__` marker.
 
+Second locked page: `private/playbook.html` → `studio/playbook/index.html` (the interactive Oil Painter's Playbook; its source text is `private/playbook-source.md`). Lock it with `python3 tools/lock.py --source private/playbook.html --output studio/playbook/index.html`. All locked pages share the salt in `private/salt.b64`, so "stay unlocked" on one opens the others; `--new-salt` rotates it. Playbook progress lives in the browser's localStorage (key `playbook:v1`), with a sync link, JSON export and import on the page.
+
 Workflow: edit `private/studio.html`, run `python3 tools/lock.py`, commit `studio/index.html`, push. Changing the password is the same command with a new password. "Stay unlocked on this device" stores the derived key in that browser's localStorage, not the password; re-locking with a new password invalidates it.
 
 Keep a copy of `private/` somewhere backed up. It is the only plaintext.
