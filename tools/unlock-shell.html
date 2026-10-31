@@ -128,14 +128,20 @@
     document.open(); document.write(html); document.close();
   }
 
-  // Try a remembered key first.
+  // Try a remembered key first: this tab's session, then this device.
   (async function () {
+    var jwk = null, from = null;
+    try { jwk = sessionStorage.getItem(STORE); from = 'session'; } catch (_) {}
+    if (!jwk) { try { jwk = localStorage.getItem(STORE); from = 'local'; } catch (_) {} }
+    if (!jwk) return;
     try {
-      var jwk = localStorage.getItem(STORE);
-      if (!jwk) return;
+      say('Unlocking…');
       var key = await crypto.subtle.importKey('jwk', JSON.parse(jwk), { name: 'AES-GCM' }, true, ['decrypt']);
       await open(key);
-    } catch (e) { try { localStorage.removeItem(STORE); } catch (_) {} }
+    } catch (e) {
+      try { sessionStorage.removeItem(STORE); localStorage.removeItem(STORE); } catch (_) {}
+      say('The page was re-locked. Please enter the password again.');
+    }
   })();
 
   form.addEventListener('submit', async function (e) {
@@ -144,7 +150,9 @@
     go.disabled = true; say('Unlocking…');
     try {
       var key = await deriveKey(pw.value);
-      if (keep.checked) { try { localStorage.setItem(STORE, JSON.stringify(await crypto.subtle.exportKey('jwk', key))); } catch (_) {} }
+      var jwk = JSON.stringify(await crypto.subtle.exportKey('jwk', key));
+      try { sessionStorage.setItem(STORE, jwk); } catch (_) {}            // carries across locked pages in this tab
+      if (keep.checked) { try { localStorage.setItem(STORE, jwk); } catch (_) {} } // and across visits on this device
       await open(key);
     } catch (err) {
       say('That password did not open it.', true);
