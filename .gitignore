@@ -1,0 +1,3 @@
+# Plaintext source for the password-protected /studio page. Never commit.
+private/
+.DS_Store
