@@ -25,7 +25,8 @@ IMG_DIR = OUT_DIR / "img"
 SALT_FILE = ROOT / "private" / "gallery-salt.b64"
 ITER = 600_000
 THUMB, FULL = 640, 1800
-STANDARD = [(5, 7), (6, 8), (8, 8), (8, 10), (9, 12), (10, 10), (11, 14), (12, 12), (12, 16), (14, 18), (16, 16), (16, 20), (18, 24), (20, 24), (24, 30), (24, 36), (30, 40)]
+STANDARD = [(5, 7), (6, 8), (8, 8), (8, 10), (8, 12), (9, 12), (10, 10), (11, 14), (12, 12), (12, 16), (12, 18), (12, 24), (14, 18), (16, 16), (16, 20), (18, 24), (20, 24), (24, 30), (24, 36), (30, 40)]
+TYPICAL_AREA = 12 * 16  # the most common size in the collection; breaks ties between same-ratio sizes
 MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
 
 
@@ -49,7 +50,8 @@ def norm_dims(d):
 def infer_dims(img: Image.Image):
     w, h = img.size
     r = max(w, h) / min(w, h)
-    best = min(STANDARD, key=lambda s: abs(max(s) / min(s) - r))
+    close = [s for s in STANDARD if abs(max(s) / min(s) - r) < 0.05]
+    best = min(close, key=lambda s: abs(s[0] * s[1] - TYPICAL_AREA)) if close else min(STANDARD, key=lambda s: abs(max(s) / min(s) - r))
     a, b = (min(best), max(best)) if h >= w else (max(best), min(best))
     return f"{a} × {b} in (approx.)"
 
