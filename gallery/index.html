@@ -125,6 +125,11 @@
   async function open(key) {
     var pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64(P.iv) }, key, b64(P.ct));
     var html = dec.decode(pt);
+    // document.open() is a no-op while the parser is still inside this script (Chrome resolves a
+    // remembered-key unlock that fast), and document.write() would then APPEND the page below the
+    // form. Wait for the parser to finish, then hop to a fresh task before replacing the page.
+    if (document.readyState === 'loading') await new Promise(function (r) { document.addEventListener('DOMContentLoaded', r, { once: true }); });
+    await new Promise(function (r) { setTimeout(r, 0); });
     document.open(); document.write(html); document.close();
   }
 
