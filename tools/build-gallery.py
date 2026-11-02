@@ -244,7 +244,7 @@ TEMPLATE = r"""<!doctype html>
   async function show() {
     const w = W[cur], im = w.images[sub]; const my = ++token;
     img.classList.remove('in'); img.src = im.thumb; img.alt = w.title; st.textContent = 'Loading…';
-    $('#lb-cap').innerHTML = ''; $('#lb-cap').append(el('b', {}, w.title + (w.images.length > 1 ? ` (${sub + 1} of ${w.images.length})` : '')), el('span', {}, cap(w)), w.note ? el('span', { class: 'note' }, w.note) : null);
+    $('#lb-cap').innerHTML = ''; $('#lb-cap').append(el('b', {}, w.title + (w.images.length > 1 ? ` (${sub + 1} of ${w.images.length})` : '')), el('span', {}, cap(w))); if (w.note) $('#lb-cap').append(el('span', { class: 'note' }, w.note));
     history.replaceState(null, '', '#w-' + w.id);
     try { const url = await full(im.id); if (my !== token) return; img.src = url; img.onload = () => img.classList.add('in'); st.textContent = ''; }
     catch (e) { if (my !== token) return; img.classList.add('in'); st.textContent = e.message === 'nokey' ? 'Reload to unlock full size' : 'Could not load full size'; }
