@@ -8,7 +8,7 @@
   same key, and decrypted in the browser on tap.
 Password: $GALLERY_PASSWORD or private/GALLERY-PASSWORD.txt. Salt: private/gallery-salt.b64.
 """
-import base64, hashlib, io, json, os, re, secrets, subprocess, sys
+import base64, hashlib, hmac, io, json, os, re, secrets, subprocess, sys
 from pathlib import Path
 from PIL import Image, ImageOps
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
@@ -94,7 +94,7 @@ def main():
             if not dims: dims = infer_dims(im)
             iid = hashlib.sha1(rel.encode()).hexdigest()[:12]
             full = jpeg(im, FULL, 86)
-            iv = secrets.token_bytes(12)
+            iv = hmac.new(key, full, hashlib.sha256).digest()[:12]  # deterministic: unchanged image = unchanged .bin
             (IMG_DIR / f"{iid}.bin").write_bytes(iv + aes.encrypt(iv, full, None)); keep_files.add(f"{iid}.bin")
             imgs.append({"id": iid, "thumb": "data:image/jpeg;base64," + base64.b64encode(jpeg(im, THUMB, 80)).decode(), "w": im.width, "h": im.height})
         y, mth = (e.get("date") or "0000-00")[:7].split("-")

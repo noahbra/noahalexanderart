@@ -23,6 +23,8 @@ import argparse
 import base64
 import getpass
 import mimetypes
+import hashlib
+import hmac
 import os
 import re
 import secrets
@@ -129,9 +131,11 @@ def main() -> None:
         salt_file.parent.mkdir(parents=True, exist_ok=True)
         salt_file.write_text(base64.b64encode(salt).decode() + "\n")
         print(f"{'rotated' if args.new_salt else 'created'} salt at {salt_file.relative_to(ROOT)}")
-    iv = secrets.token_bytes(12)
     kdf = PBKDF2HMAC(algorithm=hashes.SHA256(), length=32, salt=salt, iterations=ITERATIONS)
     key = kdf.derive(password.encode("utf-8"))
+    # Deterministic nonce: keyed hash of the plaintext. Same page + same key = identical output,
+    # so re-locking an unchanged page is a git no-op. A different page gets a different nonce.
+    iv = hmac.new(key, html.encode("utf-8"), hashlib.sha256).digest()[:12]
     ct = AESGCM(key).encrypt(iv, html.encode("utf-8"), None)
 
     b64 = lambda b: base64.b64encode(b).decode()
