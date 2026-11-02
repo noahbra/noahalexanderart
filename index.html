@@ -200,6 +200,19 @@
   button.repaint:hover { transform: translateY(-1px); box-shadow: 0 14px 28px -14px var(--accent); }
   button.repaint:active { transform: translateY(0); }
   button.repaint:focus-visible, .hint:focus-visible { outline: 2px solid var(--fg); outline-offset: 3px; }
+  a.gallery-link {
+    display: inline-block;
+    font: 500 15px/1 var(--body);
+    letter-spacing: .01em;
+    color: var(--fg);
+    text-decoration: none;
+    padding: 13px 21px;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    transition: transform .15s ease, border-color .15s ease, background-color .15s ease;
+  }
+  a.gallery-link:hover, a.gallery-link:focus-visible { transform: translateY(-1px); border-color: var(--fg); outline: none; }
+  a.gallery-link:active { transform: translateY(0); }
   .seed {
     font-family: var(--mono);
     font-size: 13px;
@@ -275,7 +288,7 @@
 
   @media (prefers-reduced-motion: reduce) {
     .rail .dot { animation: none; opacity: 1; }
-    button.repaint { transition: none; }
+    button.repaint, a.gallery-link { transition: none; }
   }
 </style>
 </head>
@@ -295,6 +308,7 @@
       <p class="lede">While the walls get hung, this canvas paints itself a little differently for every visitor. If you don't like the one you got, ask for another.</p>
       <div class="controls">
         <button class="repaint" id="repaint" type="button">Paint another</button>
+        <a class="gallery-link" href="/gallery/">Practice gallery &rarr;</a>
         <span class="seed" id="seed">Composition no. 0000</span>
       </div>
     </div>

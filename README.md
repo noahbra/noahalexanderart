@@ -29,4 +29,5 @@ Trusted viewers see paintings from the Notion "Artwork" database at `/gallery/`,
 - `tools/pull-artwork.py`: pulls pages and images from Notion into `private/artwork/` (needs a Notion integration token: `$NOTION_TOKEN`, `private/notion-token.txt`, or `~/thirdway-local/credentials/notion-token.txt`). Incremental.
 - `private/gallery-config.json`: what viewers see. Excluded pages (drawings), renames (no sitter names), medium overrides. Missing dimensions are inferred from the image and marked approx.
 - `tools/build-gallery.py`: config + manifest → `private/gallery.html` → locked `gallery/index.html` plus `gallery/img/*.bin`.
-- `tools/sync-gallery.sh`: pull, build, commit, push. Run it whenever Notion changes.
+- `tools/sync-gallery.sh`: pull, build, commit, push. Runs daily at 7:00 under launchd (`~/Library/LaunchAgents/com.noahalexanderart.gallery-sync.plist`) from the clone at `~/noahalexanderart-sync`, because launchd jobs cannot read `~/Desktop`. Log: `~/Library/Logs/noahalexanderart-sync.log`. A failure posts a macOS notification. Run it by hand from either clone to sync sooner.
+- The gallery's private files (`gallery-config.json`, `gallery-salt.b64`, `GALLERY-PASSWORD.txt`, the `artwork/` cache) live in `~/noahalexanderart-sync/private/`; the Desktop clone's `private/` holds symlinks to them, so both clones build from the same inputs.
