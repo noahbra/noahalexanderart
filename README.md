@@ -22,6 +22,16 @@ Workflow: edit `private/studio.html`, run `python3 tools/lock.py`, commit `studi
 
 Keep a copy of `private/` somewhere backed up. It is the only plaintext.
 
+## /studio/painters (The Painter's Hand, Studio password)
+
+A private study page on oil painting technique: 91 painters in 15 chapters, 472 zoomable reproductions, lineage, techniques, materials, reading list. It opens with the Studio password and shares its salt, so one unlock covers both.
+
+- `private/painters/`: plaintext source (`index.html`, `app.js`, `styles.css`, `data/*.js`, `img/**/*.webp`). **Gitignored. Never commit it.** Keep a backup; it is the only plaintext.
+- `tools/build-painters.py`: encrypts every referenced WebP into `studio/painters/img/**/*.bin` (AES-256-GCM, same key; deterministic nonces so a no-change build is a git no-op), inlines the styles, data and app into one page, and locks it through `tools/lock.py` into `studio/painters/index.html`. The page decrypts each image in the browser as it scrolls into view and never requests a plaintext image.
+- Reproductions include works still under copyright, reproduced for private study only. Do not share the link or the password beyond that use.
+
+Workflow: edit under `private/painters/`, run `python3 tools/build-painters.py`, commit `studio/painters/`, push.
+
 ## /gallery (guest password, synced from Notion)
 
 Trusted viewers see paintings from the Notion "Artwork" database at `/gallery/`, behind a separate guest password (`private/GALLERY-PASSWORD.txt`, salt `private/gallery-salt.b64`). Thumbnails are encrypted inside the page; full-size images are encrypted one per file in `gallery/img/` and decrypted in the browser on tap.
