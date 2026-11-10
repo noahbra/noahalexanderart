@@ -24,7 +24,7 @@ Keep a copy of `private/` somewhere backed up. It is the only plaintext.
 
 ## /studio/painters (The Painter's Hand, Studio password)
 
-A private study page on oil painting technique: 138 painters in 19 chapters, 744 zoomable reproductions, lineage with three traditions, a map of 164 places where the works hang, techniques, materials, reading list. It opens with the Studio password and shares its salt, so one unlock covers both.
+A private study page on oil painting technique: 150 painters in 19 chapters, 799 zoomable reproductions, lineage with three traditions, a map of 172 places where the works hang, techniques, materials, reading list. It opens with the Studio password and shares its salt, so one unlock covers both.
 
 - `private/painters/`: plaintext source (`index.html`, `app.js`, `styles.css`, `data/*.js`, `img/**/*.webp`). **Gitignored. Never commit it.** Keep a backup; it is the only plaintext.
 - `tools/build-painters.py`: encrypts every referenced WebP into `studio/painters/img/**/*.bin` (AES-256-GCM, same key; deterministic nonces so a no-change build is a git no-op), inlines the styles, data and app into one page, and locks it through `tools/lock.py` into `studio/painters/index.html`. The page decrypts each image in the browser as it scrolls into view and never requests a plaintext image.
